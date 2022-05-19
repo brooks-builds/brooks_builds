@@ -1,0 +1,12 @@
+{
+    "name": "brooks_builds_platform",
+    "devDependencies": {
+        "@types/node": "^14"
+    },
+    "dependencies": {
+        "@pulumi/aws": "^5.0.0",
+        "@pulumi/awsx": "^0.40.0",
+        "@pulumi/pulumi": "^3.0.0",
+        "cypress": "^9.6.1"
+    }
+}
