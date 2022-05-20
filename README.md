@@ -14,8 +14,8 @@ The general idea is
 - [x] Certificate
   - [x] Get existing if exists in config
   - [x] Create if not
-- [ ] Create a Route53 record
-- [ ] Create the Cloudfront distribution
+- [x] Create a Route53 record
+- [x] Create the Cloudfront distribution
 - [ ] Build the project for release using `trunk`
 
-left off at https://github.com/pulumi/examples/blob/2ee921d930a40e4be20ce68b12a1e00356888b5f/aws-ts-static-website/index.ts#L156
+Left off at the bucket name being invalid :(
