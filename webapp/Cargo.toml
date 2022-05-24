@@ -7,3 +7,9 @@ edition = "2021"
 
 [dependencies]
 yew = "0.19.3"
+serde = "1.0.137"
+serde_json = "1.0.81"
+gloo = "0.7.0"
+chrono = { version = "0.4.19", features = ["wasmbind", "serde"] }
+eyre = "0.6.8"
+wasm-bindgen-futures = "0.4.30"
