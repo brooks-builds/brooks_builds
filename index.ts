@@ -60,7 +60,7 @@ function createAccessIdentityForConnectingToS3(): OriginAccessIdentity {
   });
 }
 
-function createCloudfrontDistribution(bucket: Bucket, accessIdentity: OriginAccessIdentity, certificateArn: string | Output<string>, aliases: string[], loggingBucket: Bucket, logPrefix: string): Distribution {
+function createCloudfrontDistribution(bucket: Bucket, certificateArn: string | Output<string>, aliases: string[], loggingBucket: Bucket, logPrefix: string): Distribution {
   return new Distribution("Cloudfront distribution", {
     defaultCacheBehavior: {
       allowedMethods: ['GET', 'HEAD', 'OPTIONS'],
@@ -78,9 +78,8 @@ function createCloudfrontDistribution(bucket: Bucket, accessIdentity: OriginAcce
     },
     enabled: true,
     origins: [{
-      domainName: bucket.websiteEndpoint,
+      domainName: bucket.bucketDomainName,
       originId: bucket.arn,
-      s3OriginConfig: {originAccessIdentity: accessIdentity.cloudfrontAccessIdentityPath}
     }],
     restrictions: {
       geoRestriction: {
@@ -102,32 +101,6 @@ function createCloudfrontDistribution(bucket: Bucket, accessIdentity: OriginAcce
   })
 }
 
-function createBucketPolicy(bucket: Bucket, originAccessIdentity: OriginAccessIdentity): BucketPolicy {
-  const policy = {
-    "Id": "Policy1653055266419",
-    "Version": "2012-10-17",
-    "Statement": [
-      {
-        "Sid": "Stmt1653055262390",
-        "Action": [
-          "s3:GetObject"
-        ],
-        "Effect": "Allow",
-        "Resource": [`${bucket.arn}/*`],
-        "Principal": {
-          "AWS": [
-            originAccessIdentity.iamArn
-          ]
-        }
-      }
-    ]
-  };
-  return new BucketPolicy("Bucket policy", {
-    bucket: bucket.id,
-    policy: JSON.stringify(policy),
-  })
-}
-
 function createRoute53Record(name: string, domainName: string, zoneId: string, cloudfrontDistribution: Distribution): aws.route53.Record {
   return new aws.route53.Record(name, {
     name: domainName,
@@ -141,15 +114,37 @@ function createRoute53Record(name: string, domainName: string, zoneId: string, c
   });
 }
 
-async function main(): Promise<void> {
+function createS3Policy(bucket: Bucket): BucketPolicy {
+  return new BucketPolicy("Bucket Policy", {
+    bucket: bucket.id,
+    policy: {
+      Version: '2012-10-17',
+      Statement: [{
+        Action: [
+          's3:GetObject'
+        ],
+        Sid: "AllowCloudfront",
+        Principal: {
+          AWS: "*"
+        },
+        Effect: "Allow",
+        Resource: [
+          bucket.arn.apply(arn => `${arn}/*`)
+        ]
+      }]
+    }
+  })
+}
+
+export async function main(): Promise<any> {
   const config = new pulumi.Config();
   let certificateArn: string | undefined | Output<string> = config.get("certificateArn");
   const domainName = config.get("domainName");
   
   if(!domainName) throw new Error("missing config 'domainName'");
   
-  const bucketName = `brooks_builds_platform_${pulumi.getStack()}`;
-  const logBucketName = `${bucketName}_logs`;
+  const bucketName = `platform-${pulumi.getStack()}`;
+  const logBucketName = `${bucketName}-logs`;
   const bucket = createWebBucket(bucketName, true);
   const logBucket = createWebBucket(logBucketName);
   
@@ -171,13 +166,11 @@ async function main(): Promise<void> {
   const distributionAliases = [domainName, `www.${domainName}`];
   const cloudfrontDistribution = createCloudfrontDistribution(
     bucket,
-    originAccessIdentity,
     certificateArn,
     distributionAliases,
     logBucket,
     "platform-"
   );
-  const bucketPolicy = createBucketPolicy(bucket, originAccessIdentity);
   const route53Record = createRoute53Record(
     "route53 record",
     domainName,
@@ -186,10 +179,15 @@ async function main(): Promise<void> {
   );
   const wwwRoute53Record = createRoute53Record(
     "www route53 record",
-    domainName,
+    `www.${domainName}`,
     await getRoute53HostedZoneId(domainName),
     cloudfrontDistribution
   );
+  const bucketPolicy = createS3Policy(bucket);
+
+  return {
+    bucketArn: bucket.arn
+  }
 }
 
 main().then(() => console.log("finished"));
