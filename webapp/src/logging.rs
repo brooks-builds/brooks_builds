@@ -1,54 +1,84 @@
 use chrono::prelude::*;
-use eyre::Result;
-use serde::{Deserialize, Serialize};
 use serde_json::json;
 
-#[derive(Serialize, Debug)]
-pub enum LogLevel {
-    Info,
-}
+const SEQ_KEY: &str = env!("SEQ_KEY");
+const SEQ_URI: &str = "http://localhost:5341/api/events/raw?clef";
 
-#[derive(Serialize)]
-pub struct LogMessage {
-    pub timestamp: DateTime<Local>,
-    pub message: String,
-    pub level: LogLevel,
-}
+pub struct LogMessage;
 
 impl LogMessage {
-    pub fn new(message: impl Into<String>, level: LogLevel) -> Self {
-        let now = Local::now();
+    pub fn info(message: impl Into<String> + Clone) {
+        let body = json!(
+          {
+            "@t":format!("{}", Local::now()),
+            "@m": message.clone().into(),
+            "@l": "info"
+          }
+        );
 
-        Self {
-            timestamp: now,
-            message: message.into(),
-            level,
+        match serde_json::to_string(&body) {
+            Ok(body) => Self::send(body),
+            Err(error) => Self::console_error(
+                "Error converting info log message to string",
+                Some(format!("{:?}", error)),
+            ),
+        }
+
+        if cfg!(debug_assertions) {
+            Self::console_log(message.into())
         }
     }
 
-    pub fn console(&self) -> Result<()> {
-        gloo::console::log!(serde_json::to_string_pretty(self)?);
-        Ok(())
-    }
-
-    pub fn send(&self) -> Result<()> {
+    pub fn error(message: impl Into<String> + Clone, error: eyre::Report) {
+        let stack_trace = format!("{:?}", error);
         let body = json!(
           {
-            "@t":format!("{}", self.timestamp),
-            "@m": self.message,
-            "@l": format!("{:?}", self.level)
+            "@t":format!("{}", Local::now()),
+            "@m": message.clone().into(),
+            "@x": stack_trace.clone(),
+            "@l": "error"
           }
         );
-        let seq_key = env!("SEQ_KEY");
+
+        match serde_json::to_string(&body) {
+            Ok(body) => Self::send(body),
+            Err(error) => Self::console_error(
+                "Error converting error log message to string",
+                Some(format!("{:?}", error)),
+            ),
+        }
+
+        if cfg!(debug_assertions) {
+            Self::console_error(message.into(), Some(stack_trace));
+        }
+    }
+
+    fn send(body: String) {
         wasm_bindgen_futures::spawn_local(async move {
-            gloo::net::http::Request::post("http://localhost:5341/api/events/raw?clef")
-                .header("X-Seq-ApiKey", seq_key)
-                .body(serde_json::to_string(&body).unwrap())
+            match gloo::net::http::Request::post(SEQ_URI)
+                .header("X-Seq-ApiKey", SEQ_KEY)
+                .body(body)
                 .send()
                 .await
-                .unwrap();
+            {
+                Ok(result) => {
+                    if !result.ok() {
+                        Self::console_error("Error sending log", None);
+                    }
+                }
+                Err(error) => Self::console_error(
+                    "Error sending log, please check network tab to find what happened",
+                    Some(format!("{:?}", error)),
+                ),
+            }
         });
+    }
 
-        Ok(())
+    fn console_error(message: impl Into<String>, stack_trace: Option<String>) {
+        gloo::console::error!(message.into(), stack_trace);
+    }
+
+    fn console_log(message: impl Into<String>) {
+        gloo::console::log!(message.into());
     }
 }
