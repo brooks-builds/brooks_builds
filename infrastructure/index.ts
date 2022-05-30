@@ -4,6 +4,8 @@ import * as awsx from "@pulumi/awsx";
 import { Ami, getAmi, SecurityGroup, Vpc } from "@pulumi/aws/ec2";
 import { Input, Output } from "@pulumi/pulumi";
 import * as fs from 'fs';
+import { LoadBalancer } from "@pulumi/aws/lb";
+import bbAwsVpc from './aws_vpc';
 
 function createEc2Instance(name: string, ami: aws.ec2.GetAmiResult, securityGroupIds: Output<string>[], keyName: string, subnetId: string, userData: string): aws.ec2.Instance {
   return new aws.ec2.Instance(name, {
@@ -26,58 +28,6 @@ function getAwsAmi(): Promise<aws.ec2.GetAmiResult> {
     }],
     mostRecent: true
   });
-}
-
-function createSSHSecurityGroup(vpcId: string): SecurityGroup {
-  const name = 'Allow SSH';
-  return new SecurityGroup('SSH Security Group', {
-    description: 'Security group allowing SSH into a resource',
-    egress: [{
-      fromPort: 0,
-      protocol: 'ALL',
-      toPort: 0,
-      cidrBlocks: ['0.0.0.0/0'],
-      description: 'Allow everything everywhere',
-    }],
-    ingress: [{
-      fromPort: 22,
-      protocol: 'tcp',
-      toPort: 22,
-      cidrBlocks: ['0.0.0.0/0'],
-      description: 'Allow SSH from anywhere in!',
-    }],
-    name,
-    vpcId,
-    tags: {
-      Name: name
-    }
-  })
-}
-
-function createAdminGuiSecurityGroup(vpcId: string): SecurityGroup {
-  const name = 'Allow Admin access to web apps';
-  return new SecurityGroup('GUI Admin Security Group', {
-    description: 'Security group allowing Admin access',
-    egress: [{
-      fromPort: 0,
-      protocol: 'ALL',
-      toPort: 0,
-      cidrBlocks: ['0.0.0.0/0'],
-      description: 'Allow everything everywhere',
-    }],
-    ingress: [{
-      fromPort: 8000,
-      protocol: 'tcp',
-      toPort: 8000,
-      cidrBlocks: ['0.0.0.0/0'],
-      description: 'Allow access to SEQ from anywhere in!',
-    }],
-    name,
-    vpcId,
-    tags: {
-      Name: name
-    }
-  })
 }
 
 function createNormalUsageSecurityGroup(vpcId: string): SecurityGroup {
@@ -110,6 +60,12 @@ function getEc2UserdataScript(): string {
   return fs.readFileSync("./userdata/ec2.sh", {encoding: 'utf8'});
 }
 
+function getAwsSubnetIds(vpcId: string):Promise<aws.ec2.GetSubnetIdsResult> {
+  return aws.ec2.getSubnetIds({
+    vpcId
+  });
+}
+
 export async function main(): Promise<any> {
   const config = new pulumi.Config();
   const vpcId = config.require('vpcId');
@@ -119,13 +75,17 @@ export async function main(): Promise<any> {
   const sshSecurityGroup = createSSHSecurityGroup(vpcId);
   const adminSecurityGroup = createAdminGuiSecurityGroup(vpcId);
   const normalUsageSecurityGroup = createNormalUsageSecurityGroup(vpcId);
-  const securityGroupIds = [
-    // sshSecurityGroup.id,
+  const internetToLoadBalancerSecurityGroups = [
     adminSecurityGroup.id,
-    // normalUsageSecurityGroup.id,
+    normalUsageSecurityGroup.id,
+  ];
+  const loadBalancerToEc2SecurityGroups = [
+    sshSecurityGroup.id
   ];
   const ec2UserData = getEc2UserdataScript();
-  const ec2 = createEc2Instance("brooks-builds-ec2", ami, securityGroupIds, keyName, subnetId, ec2UserData);
+  const ec2 = createEc2Instance("brooks-builds-ec2", ami, loadBalancerToEc2SecurityGroups, keyName, subnetId, ec2UserData);
+  const awsVpc = bbAwsVpc(vpcId);
+  const subnetIds = await getAwsSubnetIds(vpcId);
   return {};
 }
 
