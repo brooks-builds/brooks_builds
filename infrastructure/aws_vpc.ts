@@ -54,6 +54,18 @@ function createAwsSecurityGroup(pulumiName: string, name: string, description: s
   })
 }
 
+
+
+function getEc2UserdataScript(): string {
+  return fs.readFileSync("./userdata/ec2.sh", {encoding: 'utf8'});
+}
+
+function getAwsSubnetIds(vpcId: string):Promise<aws.ec2.GetSubnetIdsResult> {
+  return aws.ec2.getSubnetIds({
+    vpcId
+  });
+}
+
 export default function setupAwsVpc(vpcId: string): BbAwsVpc {
   const subnetInSecondAvailabilityZone = createAwsSubnet(
     "BackupPublicSubnet",
@@ -75,6 +87,13 @@ export default function setupAwsVpc(vpcId: string): BbAwsVpc {
       'Allow Admin access to web apps',
       'Security group allowing Admin access',
       8000,
+      vpcId
+    ),
+    normalUsage: createAwsSecurityGroup(
+      'Normal usage Security Group',
+      'Normal usage for services and apps',
+      'Allow traffic for normal usage',
+      5341,
       vpcId
     )
   }
