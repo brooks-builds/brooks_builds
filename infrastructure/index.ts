@@ -1,9 +1,9 @@
 import * as pulumi from '@pulumi/pulumi';
 import BBAwsVpc from './aws/vpc';
-import BBAwsEc2 from './aws/ec2';
+import {bbAwsEc2Init} from './aws/ec2';
+import BBAwsSecurityGroups from './aws/securityGroups';
 
 // export async function main(): Promise<any> {
-//   const ec2 = createEc2Instance("brooks-builds-ec2", ami, loadBalancerToEc2SecurityGroups, keyName, subnetId, ec2UserData);
 //   const awsVpc = bbAwsVpc(vpcId);
 //   const subnetIds = await getAwsSubnetIds(vpcId);
 //   return {};
@@ -11,12 +11,13 @@ import BBAwsEc2 from './aws/ec2';
 
 async function main(): Promise<any> {
   const config = new pulumi.Config();
-  const bbAwsVpc = new BBAwsVpc(config.require('vpcId'));
-  const bbAwsEc2 = await new BBAwsEc2(
+  const bbAwsVpc = new BBAwsVpc(config.require('vpcId'), config.require('subnetId'));
+  const bbAwsEc2 = await bbAwsEc2Init(
     config.require('keyName'), 
     './userdata/ec2.sh',
-    bbAwsVpc
-  ).load();
+    bbAwsVpc,
+    new BBAwsSecurityGroups(bbAwsVpc)
+  );
 
   return {
     ami: bbAwsEc2.ami?.id
