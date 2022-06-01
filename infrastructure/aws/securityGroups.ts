@@ -1,4 +1,5 @@
 import { SecurityGroup } from "@pulumi/aws/ec2";
+import { Output } from "@pulumi/pulumi";
 import BBAwsVpc from "./vpc";
 
 export default class BBAwsSecurityGroups {
@@ -36,5 +37,12 @@ export default class BBAwsSecurityGroups {
       },
       vpcId: this.vpc.id
     });
+  },
+
+  public get getInternetToLoadBalancerSecurityGroupIds(): Output<string>[] {
+    return [
+      this.normalUsageSecurityGroup.id,
+      this.webAdminSecurityGroup.id,
+    ]
   }
 }

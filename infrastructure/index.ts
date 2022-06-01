@@ -3,12 +3,6 @@ import BBAwsVpc from './aws/vpc';
 import {bbAwsEc2Init} from './aws/ec2';
 import BBAwsSecurityGroups from './aws/securityGroups';
 
-// export async function main(): Promise<any> {
-//   const awsVpc = bbAwsVpc(vpcId);
-//   const subnetIds = await getAwsSubnetIds(vpcId);
-//   return {};
-// }
-
 async function main(): Promise<any> {
   const config = new pulumi.Config();
   const bbAwsVpc = new BBAwsVpc(config.require('vpcId'), config.require('subnetId'));

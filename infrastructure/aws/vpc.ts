@@ -1,4 +1,5 @@
 import { Subnet } from "@pulumi/aws/ec2";
+import { Output } from "@pulumi/pulumi";
 
 export default class BBAwsVpc {
   vpcId: string;
@@ -17,6 +18,13 @@ export default class BBAwsVpc {
 
   public get getPrimarySubnetId(): string {
     return this.primarySubnetId
+  }
+
+  public get getAllSPublicSubnetIds(): (string|Output<string>)[] {
+    return [
+      this.primarySubnetId,
+      this.backupSubnet.id,
+    ]
   }
   
   createSubnet(name: string, availabilityZone: string, cidrBlock: string): Subnet {

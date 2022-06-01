@@ -1,34 +1,3 @@
-import * as aws from '@pulumi/aws';
-import { SecurityGroup } from '@pulumi/aws/ec2';
-import { LoadBalancer } from '@pulumi/aws/lb';
-import { Output } from '@pulumi/pulumi';
-
-interface BbAwsVpc {
-  subnetInSecondAvailabilityZone: aws.ec2.Subnet
-}
-
-function createAwsSubnet(name: string, vpcId: string, availabilityZone: string, cidrBlock: string): aws.ec2.Subnet {
-  return new aws.ec2.Subnet(name, {
-    vpcId,
-    availabilityZone,
-    cidrBlock,
-    tags: {
-      Name: name
-    }
-  });
-}
-
-function createAwsLoadBalancer(securityGroupIds: Output<string>[], subnetIds: string[], enableDeletionProtection: boolean = true): LoadBalancer {
-  return new LoadBalancer("LoadBalancer", {
-    internal: false,
-    loadBalancerType: "application",
-    securityGroups: securityGroupIds,
-    subnets: subnetIds,
-    enableDeletionProtection,
-    name: 'BrooksBuildsLoadBalancer',
-})
-}
-
 function createAwsSecurityGroup(pulumiName: string, name: string, description: string, port: number, vpcId: string, cidrBlocks: string[] = ['0.0.0.0/0'], ingressDescription: string = 'Allow from everywhere'): SecurityGroup {
   return new SecurityGroup(pulumiName, {
     description,
