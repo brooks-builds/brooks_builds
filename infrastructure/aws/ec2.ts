@@ -61,5 +61,5 @@ class BBAwsEc2 {
 }
 
 export async function bbAwsEc2Init(keyname: string, userdataPath: string, vpc: BBAwsVpc, securityGroups: BBAwsSecurityGroups): Promise<BBAwsEc2> {
-  return new BBAwsEc2(keyname, userdataPath, vpc, securityGroups);
+  return new BBAwsEc2(keyname, userdataPath, vpc, securityGroups).load();
 }

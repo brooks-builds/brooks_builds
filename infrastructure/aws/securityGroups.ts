@@ -37,7 +37,7 @@ export default class BBAwsSecurityGroups {
       },
       vpcId: this.vpc.id
     });
-  },
+  }
 
   public get getInternetToLoadBalancerSecurityGroupIds(): Output<string>[] {
     return [
