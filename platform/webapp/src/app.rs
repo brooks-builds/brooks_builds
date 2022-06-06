@@ -1,3 +1,4 @@
+use super::components::top_menu::TopMenu;
 use eyre::{bail, Result};
 use yew::prelude::*;
 
@@ -12,6 +13,7 @@ pub fn app() -> Html {
 
     html! {
       <div>
+        <TopMenu />
         <h1>{"Hello World"}</h1>
       </div>
     }
