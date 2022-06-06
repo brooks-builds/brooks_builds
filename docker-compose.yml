@@ -1,0 +1,37 @@
+services:
+  logging:
+    image: datalust/seq:latest
+    environment:
+      - ACCEPT_EULA=Y
+      - SEQ_FIRSTRUN_ADMINPASSWORDHASH=FFGLEHxmbIEuIow7uGakQVxm9aGu1JijrnG2LzdyDTDanSoCtg==
+    ports:
+      - "5341:5341"
+      - "8085:80"
+    expose:
+      - 5341
+    volumes:
+      - "logging_data:/data"
+    healthcheck:
+      test: curl -f http://localhost:8085
+      interval: 1m30s
+      timeout: 30s
+      retries: 5
+      start_period: 30s
+  webapp:
+    build: platform/webapp
+    depends_on:
+      - logging
+    env_file:
+      - platform/webapp/.env
+    healthcheck:
+      test: "curl -f http://localhost:8080"
+      interval: 1m30s
+      timeout: 30s
+      retries: 5
+      start_period: 30s
+    ports:
+      - 8080:8080
+    volumes:
+      - ./platform/webapp:/code
+volumes:
+  logging_data:
