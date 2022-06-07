@@ -1,10 +1,11 @@
 use super::components::top_menu::TopMenu;
 use eyre::{bail, Result};
+use stylist::yew::styled_component;
 use yew::prelude::*;
 
 use crate::logging::LogMessage;
 
-#[function_component(App)]
+#[styled_component(App)]
 pub fn app() -> Html {
     LogMessage::info("app loaded");
     if let Err(error) = always_fails() {
