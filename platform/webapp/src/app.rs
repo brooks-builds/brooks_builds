@@ -13,9 +13,9 @@ pub fn app() -> Html {
     }
 
     html! {
-      <div>
+      <div class="container-fluid">
         <TopMenu />
-        <h1>{"Hello World"}</h1>
+        <h1 class="text-success">{"Hello World"}</h1>
       </div>
     }
 }

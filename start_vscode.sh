@@ -1,5 +1,7 @@
 #!/bin/bash
 
-source webapp/.env
-docker-compose up -d
-code .
+for line in $(cat webapp/.env)
+do
+  export $line
+  code .
+done
