@@ -1,25 +1,18 @@
 use super::components::top_menu::TopMenu;
-use eyre::{bail, Result};
+use crate::router::switch;
+use crate::router::Route;
 use stylist::yew::styled_component;
 use yew::prelude::*;
-
-use crate::logging::LogMessage;
+use yew_router::prelude::*;
 
 #[styled_component(App)]
 pub fn app() -> Html {
-    LogMessage::info("app loaded");
-    if let Err(error) = always_fails() {
-        LogMessage::error("error running the function that always errors", error);
-    }
-
     html! {
-      <div class="container-fluid">
-        <TopMenu />
-        <h1 class="text-success">{"Hello World"}</h1>
-      </div>
+      <BrowserRouter>
+        <div class="container-fluid">
+          <TopMenu />
+          <Switch<Route> render={Switch::render(switch)} />
+        </div>
+      </BrowserRouter>
     }
-}
-
-pub fn always_fails() -> Result<()> {
-    bail!("I failed!")
 }

@@ -14,3 +14,4 @@ chrono = { version = "0.4.19", features = ["wasmbind", "serde"] }
 eyre = "0.6.8"
 wasm-bindgen-futures = "0.4.30"
 stylist = { version = "0.10.0", features = ["yew_integration"] }
+yew-router = "0.16.0"
