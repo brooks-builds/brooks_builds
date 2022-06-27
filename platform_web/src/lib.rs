@@ -1,8 +1,27 @@
+mod background;
+mod background_circle;
+
+use background::Background;
+use stylist::yew::{styled_component, use_style};
 use yew::prelude::*;
 
-#[function_component(App)]
+#[styled_component(App)]
 pub fn app() -> Html {
+    let style = use_style(create_css());
+
     html! {
-        <h1>{"Hello world"}</h1>
+        <>
+        <div class={style}>
+            <h1>{"I am an H1"}</h1>
+            <p>{"I am a paragraph"}</p>
+        </div>
+        <Background />
+        </>
     }
+}
+
+fn create_css() -> &'static str {
+    r#"
+        z-index: 100;
+    "#
 }
