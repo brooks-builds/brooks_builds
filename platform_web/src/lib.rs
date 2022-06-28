@@ -1,6 +1,7 @@
 mod background;
 mod background_circle;
 mod background_square;
+mod components;
 
 use background::Background;
 use stylist::yew::{styled_component, use_style};
