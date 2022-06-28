@@ -1,3 +1,3 @@
-name: brooks_builds_infrastructure
+name: brooks_builds
 runtime: nodejs
-description: The Cloud Infrastructure for Brooks Builds
+description: AWS Cloud for Brooks Builds

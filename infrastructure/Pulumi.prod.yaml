@@ -1,5 +1,0 @@
-config:
-  aws:region: us-east-1
-  brooks_builds_infrastructure:keyName: brooks-builds
-  brooks_builds_infrastructure:subnetId: subnet-082e957442cf0b54c
-  brooks_builds_infrastructure:vpcId: vpc-07e16b79155ce8871

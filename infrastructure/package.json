@@ -1,5 +1,5 @@
 {
-    "name": "brooks_builds_infrastructure",
+    "name": "brooks_builds",
     "devDependencies": {
         "@types/node": "^14"
     },
