@@ -1,6 +1,7 @@
-use crate::background_circle::BackgroundCircle;
-use crate::background_square::BackgroundSquare;
-use crate::components::background_triangle::BackgroundTriangle;
+use crate::components::atoms::{
+    background_circle::BackgroundCircle, background_square::BackgroundSquare,
+    background_triangle::BackgroundTriangle,
+};
 use rand::{prelude::ThreadRng, Rng};
 use stylist::yew::{styled_component, use_style};
 use yew::prelude::*;
