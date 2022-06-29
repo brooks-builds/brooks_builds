@@ -1,3 +1,0 @@
-config:
-  aws:region: us-east-1
-  brooks_builds_platform:domainName: brooksbuilds.com
