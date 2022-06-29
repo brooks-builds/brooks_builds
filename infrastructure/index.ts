@@ -11,3 +11,41 @@ const platformFrontendBucket = new aws.s3.Bucket("platformWebBucket", {
         stack
     }
 })
+
+const platformCloudfrontOriginId = "S3PlatformOrigin";
+
+let brooksBuildsCertificate = new aws.acm.Certificate("brooksbuildsCertificate", {
+    
+});
+
+const cloudfrontDistribution = new aws.cloudfront.Distribution("platformCloudfront", {
+    defaultCacheBehavior: {
+        allowedMethods: ["GET", "HEAD"],
+        cachedMethods: ["GET", "HEAD"],
+        targetOriginId: platformCloudfrontOriginId,
+        viewerProtocolPolicy: "redirect-to-https",
+        forwardedValues: {
+            cookies: {
+                forward: "all"
+            },
+            queryString: true
+        }
+    },
+    enabled: false,
+    origins: [{
+        domainName: platformFrontendBucket.bucketDomainName,
+        originId: platformCloudfrontOriginId,
+    }],
+    restrictions: {
+        geoRestriction: {
+            restrictionType: "none"
+        },
+    },
+    viewerCertificate: {
+        cloudfrontDefaultCertificate: false,
+        acmCertificateArn: brooksBuildsCertificate.arn
+    },
+    comment: "Cloudfront distribution for the Brooks Builds Platform",
+    priceClass: "PriceClass_100",
+    aliases: ["brooksbuilds.com", "www.brooksbuilds.com"]
+})
