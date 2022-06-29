@@ -6,6 +6,7 @@ pub struct Props {
     pub x: u8,
     pub y: u8,
     pub size: u8,
+    pub color: String,
 }
 
 #[styled_component(BackgroundCircle)]
@@ -21,13 +22,14 @@ fn create_css(props: &Props) -> String {
     let size = props.size;
     let top = props.y;
     let left = props.x;
+    let color = &props.color;
 
     format!(
         "
         width: {size}rem;
         height: {size}rem;
         border-radius: 100%;
-        background-color: rgba(255, 0, 0, 0.1);
+        background-color: {color};
         position: fixed;
         top: {top}dvh;
         left: {left}dvw;
