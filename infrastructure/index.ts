@@ -45,6 +45,34 @@ const validatedCertificate = new aws.acm.CertificateValidation(`${DOMAIN_NAME}-V
 },
 {dependsOn: domainValidationRecords});
 
+const originAccessIdentity = new aws.cloudfront.OriginAccessIdentity("CloudfrontOriginAccessIdentity", {
+    comment: "access s3"
+});
+
+export const brooksbuildsS3BucketPolicy = pulumi.interpolate `
+    {
+        "Version": "2012-10-17",
+        "Id": "PolicyForCloudFrontPrivateContent",
+        "Statement": [
+            {
+                "Sid": "AllowCloudfrontAccessToPrivateS3",
+                "Effect": "Allow",
+                "Principal": {
+                    "AWS": "${originAccessIdentity.iamArn}"
+                },
+                "Action": [
+                    "s3:GetObject"
+                ],
+                "Resource": "${platformFrontendBucket.arn}/*"
+            }
+        ]
+    }
+`;
+
+const brooksbuildsBucketPolicyAttachment = new aws.s3.BucketPolicy("AttachCloudfrontOIMtoS3", {
+    bucket: platformFrontendBucket.arn,
+    policy: brooksbuildsS3BucketPolicy
+});
 
 const cloudfrontDistribution = new aws.cloudfront.Distribution("platformCloudfront", {
     defaultCacheBehavior: {
@@ -63,6 +91,9 @@ const cloudfrontDistribution = new aws.cloudfront.Distribution("platformCloudfro
     origins: [{
         domainName: platformFrontendBucket.bucketDomainName,
         originId: platformCloudfrontOriginId,
+        s3OriginConfig: {
+            originAccessIdentity: originAccessIdentity.cloudfrontAccessIdentityPath,
+        }
     }],
     restrictions: {
         geoRestriction: {
