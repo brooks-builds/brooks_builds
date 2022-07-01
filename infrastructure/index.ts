@@ -19,10 +19,12 @@ const platformCloudfrontOriginId = "S3PlatformOrigin";
 
 const brooksBuildsCertificate = new aws.acm.Certificate("brooksbuildsCertificate", {
     domainName: DOMAIN_NAME,
-    validationMethod: "DNS"
+    validationMethod: "DNS",
+    subjectAlternativeNames: [`www.${DOMAIN_NAME}`]
 });
 
 const zoneId = aws.route53.getZone({name: DOMAIN_NAME});
+
 const domainValidationRecords: aws.route53.Record[] = [];
 brooksBuildsCertificate.domainValidationOptions.apply(domainValidationOptions => {
     domainValidationOptions.forEach((domainValidationOption, domainValidationOptionIndex) => {
@@ -31,7 +33,8 @@ brooksBuildsCertificate.domainValidationOptions.apply(domainValidationOptions =>
             type: domainValidationOption.resourceRecordType,
             zoneId: zoneId.then(zoneId => zoneId.id),
             ttl: config.requireNumber("domainTtl"),
-            records: [domainValidationOption.resourceRecordValue]
+            records: [domainValidationOption.resourceRecordValue],
+            allowOverwrite: true
         }));
     });
 });
@@ -41,6 +44,7 @@ const validatedCertificate = new aws.acm.CertificateValidation(`${DOMAIN_NAME}-V
     validationRecordFqdns: domainValidationRecords.map(domainValidationRecord => domainValidationRecord.fqdn),
 },
 {dependsOn: domainValidationRecords});
+
 
 const cloudfrontDistribution = new aws.cloudfront.Distribution("platformCloudfront", {
     defaultCacheBehavior: {
@@ -55,7 +59,7 @@ const cloudfrontDistribution = new aws.cloudfront.Distribution("platformCloudfro
             queryString: true
         }
     },
-    enabled: false,
+    enabled: true,
     origins: [{
         domainName: platformFrontendBucket.bucketDomainName,
         originId: platformCloudfrontOriginId,
@@ -73,6 +77,31 @@ const cloudfrontDistribution = new aws.cloudfront.Distribution("platformCloudfro
     comment: "Cloudfront distribution for the Brooks Builds Platform",
     priceClass: "PriceClass_100",
     aliases: ["brooksbuilds.com", "www.brooksbuilds.com"],
+    defaultRootObject: "index.html",
 }, {
-    dependsOn: validatedCertificate
+    dependsOn: [validatedCertificate, brooksBuildsCertificate]
+});
+
+const mainDomainRecord = new aws.route53.Record(`${DOMAIN_NAME}-record`, {
+    name: `${DOMAIN_NAME}`,
+    type: "A",
+    zoneId: zoneId.then(zoneId => zoneId.id),
+    aliases: [{
+        evaluateTargetHealth: false,
+        name: cloudfrontDistribution.domainName,
+        zoneId: cloudfrontDistribution.hostedZoneId
+    }],
+    allowOverwrite: true,
+});
+
+const wwwDomainRecord = new aws.route53.Record(`www.${DOMAIN_NAME}-record`, {
+    name: `www.${DOMAIN_NAME}`,
+    type: "A",
+    zoneId: zoneId.then(zoneId => zoneId.id),
+    aliases: [{
+        evaluateTargetHealth: false,
+        name: cloudfrontDistribution.domainName,
+        zoneId: cloudfrontDistribution.hostedZoneId
+    }],
+    allowOverwrite: true,
 });
