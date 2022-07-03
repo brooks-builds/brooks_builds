@@ -1,0 +1,34 @@
+name: Brooks Builds Main Workflow
+on:
+  push:
+    paths:
+      - 'platform_web/**'
+      - .github/workflows/platform_web.yml
+  pull_request:
+    paths:
+      - 'platform_web/**'
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - run: cargo check
+        working-directory: platform_web
+      - run: cargo fmt --check
+        working-directory: platform_web
+  deploy:
+    if: github.event_name == 'push' && github.ref_name == 'main'
+    runs-on: ubunbu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - run: rustup update
+      - run: rustup target add wasm32-unknown-unknown
+      - run: cargo install trunk
+      - run: trunk build --release
+        working-directory: platform_web
+      - run: aws s3 sync ./ ${{ secrets.PLATFORM_WEB_BUCKET }}
+        working-directory: platform_web/dist
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: ${{ secrets.AWS_REGION }}
