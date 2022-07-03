@@ -16,26 +16,19 @@ jobs:
         working-directory: platform_web
       - run: cargo fmt --check
         working-directory: platform_web
-  # preview:
-  #   if: github.event_name == 'pull_request' && github.base_ref == 'main'
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - uses: actions/checkout@v3
-  #     - uses: actions/setup-node@v2
-  #       with:
-  #         node-version: 16.x
-  #     - name: Configure AWS Credentials
-  #       uses: aws-actions/configure-aws-credentials@v1
-  #       with:
-  #         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-  #         aws-region: ${{ secrets.AWS_REGION }}
-  #         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-  #     - run: npm install
-  #       working-directory: infrastructure
-  #     - uses: pulumi/actions@v3
-  #       with:
-  #         command: preview
-  #         stack-name: production
-  #         work-dir: infrastructure
-  #       env:
-  #         PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
+  deploy:
+    if: github.event_name == 'push' && github.ref_name == 'main'
+    runs-on: ubunbu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - run: rustup update
+      - run: rustup target add wasm32-unknown-unknown
+      - run: cargo install trunk
+      - run: trunk build --release
+        working-directory: platform_web
+      - run: aws s3 sync ./ ${{ secrets.PLATFORM_WEB_BUCKET }}
+        working-directory: platform_web/dist
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: ${{ secrets.AWS_REGION }}
