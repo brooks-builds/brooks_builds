@@ -8,7 +8,7 @@ on:
       - 'infrastructure/**'
 jobs:
   preview:
-    - name: Preview Pulumi
+    name: Preview Pulumi
       if: github.event_name == 'pull_request' && github.ref_name == 'main'
       runs-on: ubuntu-latest
       steps:
@@ -33,7 +33,7 @@ jobs:
             PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
 
   deploy:
-    - name: Deploy Pulumi
+    name: Deploy Pulumi
       if: github.event_name == 'push' && github.ref_name == 'main'
       runs-on: ubuntu-latest
       steps:
