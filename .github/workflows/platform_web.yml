@@ -3,6 +3,7 @@ on:
   push:
     paths:
       - 'platform_web/**'
+      - .github/workflows/platform_web.yml
   pull_request:
     paths:
       - 'platform_web/**'
