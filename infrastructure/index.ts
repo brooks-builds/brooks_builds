@@ -49,21 +49,22 @@ const originAccessIdentity = new aws.cloudfront.OriginAccessIdentity("Cloudfront
     comment: "access s3"
 });
 
-export const brooksbuildsS3BucketPolicy = pulumi.interpolate `
+const brooksbuildsS3BucketPolicy = pulumi.interpolate `
     {
         "Version": "2012-10-17",
-        "Id": "PolicyForCloudFrontPrivateContent",
         "Statement": [
             {
-                "Sid": "AllowCloudfrontAccessToPrivateS3",
-                "Effect": "Allow",
+                "Sid": "Statement1",
                 "Principal": {
-                    "AWS": "${originAccessIdentity.iamArn}"
+                    "AWS": "arn:aws:iam::cloudfront:user/CloudFront Origin Access Identity E2B68X2N9T5IBM"
                 },
+                "Effect": "Allow",
                 "Action": [
                     "s3:GetObject"
                 ],
-                "Resource": "${platformFrontendBucket.arn}/*"
+                "Resource": [
+                    "arn:aws:s3:::platform-frontend-production20220701021416520900000002/*"
+                ]
             }
         ]
     }
@@ -71,7 +72,7 @@ export const brooksbuildsS3BucketPolicy = pulumi.interpolate `
 
 const brooksbuildsBucketPolicyAttachment = new aws.s3.BucketPolicy("AttachCloudfrontOIMtoS3", {
     bucket: platformFrontendBucket.arn,
-    policy: brooksbuildsS3BucketPolicy
+    policy: JSON.stringify(brooksbuildsS3BucketPolicy)
 });
 
 const cloudfrontDistribution = new aws.cloudfront.Distribution("platformCloudfront", {
