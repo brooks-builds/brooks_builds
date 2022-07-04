@@ -15,12 +15,28 @@ const platformFrontendBucket = new aws.s3.Bucket("platformWebBucket", {
     }
 })
 
+const platformFrontendLogBucket = new aws.s3.Bucket("patformWebLogBucket", {
+    bucketPrefix: `platform-frontend-${STACK}-log`,
+    tags: {
+        project: 'platform',
+        stack: STACK
+    }
+})
+
+const athenaQueryBucket = new aws.s3.Bucket("athenaBucket", {
+    bucketPrefix: `athena-query-results`,
+})
+
 const platformCloudfrontOriginId = "S3PlatformOrigin";
 
 const brooksBuildsCertificate = new aws.acm.Certificate("brooksbuildsCertificate", {
     domainName: DOMAIN_NAME,
     validationMethod: "DNS",
-    subjectAlternativeNames: [`www.${DOMAIN_NAME}`]
+    subjectAlternativeNames: [`www.${DOMAIN_NAME}`],
+    tags: {
+        project: 'platform',
+        stack: STACK
+    }
 });
 
 const zoneId = aws.route53.getZone({name: DOMAIN_NAME});
@@ -60,7 +76,9 @@ const cloudfrontDistribution = new aws.cloudfront.Distribution("platformCloudfro
                 forward: "all"
             },
             queryString: true
-        }
+        },
+        defaultTtl: 2.628e+6,
+        compress: true
     },
     enabled: true,
     origins: [{
@@ -68,7 +86,7 @@ const cloudfrontDistribution = new aws.cloudfront.Distribution("platformCloudfro
         originId: platformCloudfrontOriginId,
         s3OriginConfig: {
             originAccessIdentity: originAccessIdentity.cloudfrontAccessIdentityPath,
-        }
+        },
     }],
     restrictions: {
         geoRestriction: {
@@ -78,12 +96,20 @@ const cloudfrontDistribution = new aws.cloudfront.Distribution("platformCloudfro
     viewerCertificate: {
         cloudfrontDefaultCertificate: false,
         acmCertificateArn: brooksBuildsCertificate.arn,
-        sslSupportMethod: "sni-only"
+        sslSupportMethod: "sni-only",
+        minimumProtocolVersion: "TLSv1.2_2021"
     },
     comment: "Cloudfront distribution for the Brooks Builds Platform",
     priceClass: "PriceClass_100",
     aliases: ["brooksbuilds.com", "www.brooksbuilds.com"],
     defaultRootObject: "index.html",
+    tags: {
+        project: 'platform',
+        stack: STACK
+    },
+    loggingConfig: {
+        bucket: platformFrontendLogBucket.bucketDomainName,
+    }
 }, {
     dependsOn: [validatedCertificate, brooksBuildsCertificate]
 });

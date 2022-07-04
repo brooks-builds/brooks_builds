@@ -18,7 +18,7 @@ jobs:
         working-directory: platform_web
   deploy:
     if: github.event_name == 'push' && github.ref_name == 'main'
-    runs-on: ubunbu-latest
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - run: rustup update
