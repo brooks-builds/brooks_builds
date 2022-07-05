@@ -40,6 +40,7 @@ jobs:
   deploy:
     if: github.event_name == 'push' && github.ref_name == 'main'
     runs-on: ubuntu-latest
+    needs: e2e-test
     steps:
       - uses: actions/checkout@v3
       - run: rustup update
