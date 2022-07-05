@@ -1,6 +1,6 @@
 mod components;
 
-use components::molecules::background::Background;
+use components::molecules::{background::Background, navbar::TopNavbar};
 use stylist::yew::{styled_component, use_style};
 use yew::prelude::*;
 
@@ -10,11 +10,8 @@ pub fn app() -> Html {
 
     html! {
         <>
-        <div class={style}>
-            <h1>{"I am an H1"}</h1>
-            <p>{"I am a paragraph"}</p>
-        </div>
-        <Background />
+            <TopNavbar />
+            <Background />
         </>
     }
 }
