@@ -16,6 +16,27 @@ jobs:
         working-directory: platform_web
       - run: cargo fmt --check
         working-directory: platform_web
+  e2e-test:
+    if: github.event_name == 'pull_request' || github.ref_name == 'main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - run: rustup update
+      - run: rustup target add wasm32-unknown-unknown
+      - run: cargo install trunk
+      - name: install yew app
+        working-directory: platform_web
+        run: trunk build --release
+      - name: install cypress
+        working-directory: integration_tests
+        run: npm i
+      - name: test
+        run: |
+          cd platform_web
+          trunk serve --release &
+          cd ..
+          cd integration_tests
+          npx cypress run
   deploy:
     if: github.event_name == 'push' && github.ref_name == 'main'
     runs-on: ubuntu-latest
