@@ -7,5 +7,6 @@ describe('navbar', () => {
   it('has the title of the web app', () => {
     cy.visit('/')
       .get('[data-test="nav-title"]')
+      .should('contain', 'Brooks Builds')
   })
 })

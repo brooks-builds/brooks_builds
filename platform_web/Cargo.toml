@@ -11,3 +11,4 @@ gloo = "0.8.0"
 rand = "0.8.5"
 stylist = { version = "0.10.1", features = ["yew", "yew_use_style"] }
 yew = "0.19.3"
+yew-router = "0.16.0"

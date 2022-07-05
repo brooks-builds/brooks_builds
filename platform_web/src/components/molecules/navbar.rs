@@ -7,7 +7,7 @@ pub fn top_navbar() -> Html {
             <div class="container-fluid">
                 <div>
                     <img class="navbar-brand" src="/static/brooks.png" alt="Brooks' logo" data-test="nav-logo" />
-                    <span class="navbar-text">{"Brooks Builds"}</span>
+                    <span class="navbar-text" data-test="nav-title">{"Brooks Builds"}</span>
                 </div>
             </div>
         </nav>
