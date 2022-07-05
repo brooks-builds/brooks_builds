@@ -17,7 +17,7 @@ jobs:
       - run: cargo fmt --check
         working-directory: platform_web
   e2e-test:
-    if: github.event_name == 'pull_request'
+    if: github.event_name == 'pull_request' || github.ref_name == 'main'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
