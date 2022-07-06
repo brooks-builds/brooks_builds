@@ -13,8 +13,10 @@ pub fn app() -> Html {
 
     html! {
         <BrowserRouter>
-            <TopNavbar />
-            <Switch<Route> render={Switch::render(switch)} />
+            <div class={style}>
+                <TopNavbar />
+                <Switch<Route> render={Switch::render(switch)} />
+            </div>
             <Background />
         </BrowserRouter>
     }
@@ -23,5 +25,6 @@ pub fn app() -> Html {
 fn create_css() -> &'static str {
     r#"
         z-index: 100;
+        position: relative;
     "#
 }

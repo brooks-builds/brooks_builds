@@ -35,6 +35,7 @@ fn create_css(props: &Props) -> String {
         position: fixed;
         top: {top}dvh;
         left: {left}dvh;
+        z-index: 0;
     "
     )
 }

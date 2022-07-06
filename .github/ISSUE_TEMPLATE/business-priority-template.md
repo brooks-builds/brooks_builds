@@ -12,12 +12,18 @@ assignees: ''
 - [ ] End to End tests written
 - [ ] Deployed to production
 - [ ] works and looks good on all latest browsers
-  - [ ] Safari
-  - [ ] Firefox
-  - [ ] Chrome
-  - [ ] Mobile Safari
-    - [ ] iPad
-    - [ ] iPhone
+  - [ ] Mac
+    - [ ] Safari
+    - [ ] Firefox
+    - [ ] Chrome
+  - [ ] iPhone
+    - [ ] Safari
+  - [ ] iPad
+    - [ ] Safari
+  - [ ] Windows
+    - [ ] Chrome
+    - [ ] Firefox
+    - [ ] Edge
 
 # Steps
 

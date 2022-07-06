@@ -32,6 +32,7 @@ fn create_css(props: &Props) -> String {
         top: {y}%;
         left: {x}%;
         background-color: {color};
+        z-index: 0;
     "#
     )
 }
