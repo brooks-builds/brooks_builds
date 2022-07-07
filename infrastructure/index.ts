@@ -112,9 +112,14 @@ const cloudfrontDistribution = new aws.cloudfront.Distribution("platformCloudfro
     },
     customErrorResponses: [{
         errorCode: 404,
-        errorCachingMinTtl: 2.628e+6,
+        errorCachingMinTtl: 2.628e+5,
         responseCode: 200,
-        responsePagePath: '/'
+        responsePagePath: '/index.html'
+    },{
+        errorCode: 403,
+        errorCachingMinTtl: 2.628e+5,
+        responseCode: 200,
+        responsePagePath: '/index.html'
     }]
 }, {
     dependsOn: [validatedCertificate, brooksBuildsCertificate]
