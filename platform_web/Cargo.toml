@@ -6,8 +6,10 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+dotenv = "0.15.0"
 getrandom = { version = "0.2.7", features = ["js"] }
 gloo = "0.8.0"
+load-dotenv = "0.1.2"
 rand = "0.8.5"
 stylist = { version = "0.10.1", features = ["yew", "yew_use_style"] }
 yew = "0.19.3"

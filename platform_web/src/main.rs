@@ -1,3 +1,4 @@
+use load_dotenv::load_dotenv;
 use platform_web::App;
 
 fn main() {
