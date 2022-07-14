@@ -1,18 +1,10 @@
+pub mod cookie;
 pub mod log;
 
 use rand::distributions::{Alphanumeric, DistString};
 use url::{ParseError, Url};
 use wasm_bindgen::JsCast;
 use web_sys::HtmlDocument;
-
-pub fn set_cookie(key: &str, value: &str) {
-    let document = gloo::utils::document().unchecked_into::<HtmlDocument>();
-    let cookie = format!("{key}={value}; SameSite=Strict; Secure;");
-    match document.set_cookie(&cookie) {
-        Ok(_) => {}
-        Err(error) => gloo::console::error!("Error setting cookie", error),
-    };
-}
 
 pub fn create_uri(base_uri: &str, query_params: Vec<UriQueryParam>) -> Result<Url, ParseError> {
     let mut uri = url::Url::parse(base_uri)?;
@@ -42,6 +34,10 @@ impl UriQueryParam {
             value: value.to_owned(),
         }
     }
+}
+
+pub fn get_html_document() -> HtmlDocument {
+    gloo::utils::document().unchecked_into::<HtmlDocument>()
 }
 
 #[cfg(test)]

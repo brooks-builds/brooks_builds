@@ -1,5 +1,5 @@
 use crate::utilities::{
-    create_random_string, create_uri, log::log_error, set_cookie, UriQueryParam,
+    cookie::set_cookie, create_random_string, create_uri, log::log_error, UriQueryParam,
 };
 use load_dotenv::load_dotenv;
 use rand::distributions::{Alphanumeric, DistString};

@@ -6,6 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+cookie = "0.16.0"
 dotenv = "0.15.0"
 getrandom = { version = "0.2.7", features = ["js"] }
 gloo = "0.8.0"
