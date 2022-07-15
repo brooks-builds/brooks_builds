@@ -15,7 +15,7 @@ pub fn top_navbar() -> Html {
         event.prevent_default();
         let state = create_random_string(43);
         let login_uri = create_login_uri(&state);
-        set_cookie("auth0_state", &state);
+        set_cookie("auth0_state", &state, "/", 60);
         if let Err(error) = gloo::utils::window().location().set_href(&login_uri) {
             log_error(&format!("Error navigating to Auth0 signup: {:?}", error));
         }
@@ -42,7 +42,6 @@ fn create_login_uri(state: &str) -> String {
     let connection = env!("AUTH0_CONNECTION");
     let redirect_uri = env!("AUTH0_REDIRECT_URI");
     let base_uri = format!("https://{domain}/authorize");
-    let state = create_random_string(43);
     match create_uri(
         &base_uri,
         vec![
