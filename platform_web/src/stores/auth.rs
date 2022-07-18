@@ -1,57 +1,65 @@
+use std::ops::Deref;
+
+use eyre::{bail, Result};
 use load_dotenv::load_dotenv;
+use url::Url;
+use yewdux::prelude::{BasicStore, Dispatch, DispatchProps, Dispatcher};
 
 use crate::utilities::{cookie::get_cookie, create_uri, log::log_error, UriQueryParam};
 
 load_dotenv!();
 
-#[derive(Clone)]
+#[derive(Clone, Default)]
 pub struct AuthStore {
-    pub domain: String,
-    pub client_id: String,
-    pub connection: String,
-    pub redirect_uri: String,
-    pub state: String,
+    pub loading: bool,
+    pub is_authenticated: bool,
+    pub user: Option<User>,
+    pub error: Option<String>,
 }
 
-impl AuthStore {
-    pub fn create_login_uri(&self) -> String {
-        let base_uri = format!("https://{}/authorize", self.domain);
-
-        match create_uri(
-            &base_uri,
-            vec![
-                UriQueryParam::new("response_type", "token"),
-                UriQueryParam::new("client_id", &self.client_id),
-                UriQueryParam::new("connection", &self.connection),
-                UriQueryParam::new("redirect_uri", &self.redirect_uri),
-                UriQueryParam::new("scope", "openid profile email"),
-                UriQueryParam::new("state", &self.state),
-                UriQueryParam::new("screen_hint", "signup"),
-            ],
-        ) {
-            Ok(uri) => uri.to_string(),
-            Err(error) => {
-                log_error(&format!("Error creating login uri: {:?}", error));
-                panic!();
-            }
+pub fn handle_redirect_callback(store: &mut AuthStore) {
+    store.loading = true;
+    match Auth0UriResponse::create() {
+        Ok(auth0_uri_response) => {
+            gloo::console::log!(auth0_uri_response.state);
+        }
+        Err(error) => {
+            store.error = Some(format!("{:?}", error));
         }
     }
 }
 
-impl Default for AuthStore {
-    fn default() -> Self {
-        let domain = env!("AUTH0_DOMAIN");
-        let client_id = env!("AUTH0_CLIENT_ID");
-        let connection = env!("AUTH0_CONNECTION");
-        let redirect_uri = env!("AUTH0_REDIRECT_URI");
-        let state = get_cookie("auth0_state");
+#[derive(Default, Clone)]
+pub struct User {}
 
-        Self {
-            domain: domain.to_owned(),
-            client_id: client_id.to_owned(),
-            connection: connection.to_owned(),
-            redirect_uri: redirect_uri.to_owned(),
-            state: state.unwrap_or_default(),
+#[derive(Default)]
+struct Auth0UriResponse {
+    pub state: Option<String>,
+}
+
+impl Auth0UriResponse {
+    pub fn create() -> Result<Self> {
+        let uri = match gloo::utils::window().location().href() {
+            Ok(uri) => uri,
+            Err(error) => bail!("Error getting browser URI: {:?}", error),
+        };
+
+        let parsed_url = match Url::parse(&uri) {
+            Ok(parsed_url) => parsed_url,
+            Err(error) => bail!("Error parsing URI: {:?}", error),
+        };
+
+        let mut auth0_uri_response = Self::default();
+
+        if let Some(fragment) = parsed_url.fragment() {
+            for (key, value) in url::form_urlencoded::parse(fragment.as_bytes()) {
+                match key.deref() {
+                    "state" => auth0_uri_response.state = Some(value.to_string()),
+                    _ => continue,
+                }
+            }
         }
+
+        Ok(auth0_uri_response)
     }
 }

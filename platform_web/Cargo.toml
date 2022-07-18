@@ -8,6 +8,7 @@ edition = "2021"
 [dependencies]
 cookie = "0.16.0"
 dotenv = "0.15.0"
+eyre = "0.6.8"
 getrandom = { version = "0.2.7", features = ["js"] }
 gloo = "0.8.0"
 load-dotenv = "0.1.2"

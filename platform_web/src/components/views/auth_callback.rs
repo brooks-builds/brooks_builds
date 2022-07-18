@@ -1,11 +1,8 @@
-use std::{collections::HashMap, ops::Deref};
+use std::collections::HashMap;
 
 use load_dotenv::load_dotenv;
 use yew::prelude::*;
-use yew_router::{
-    history::History,
-    hooks::{use_history, use_location},
-};
+use yew_router::{history::History, hooks::use_history};
 
 use crate::{
     router::Route,
@@ -45,8 +42,8 @@ pub fn auth_callback() -> Html {
             });
         } else {
             log_error("Cannot trust login, states don't match");
-            set_cookie("auth0_state", "", "/", 0);
-            history.push(Route::Home);
+            // set_cookie("auth0_state", "", "/", 0);
+            // history.push(Route::Home);
         }
     }
 

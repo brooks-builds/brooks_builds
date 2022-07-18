@@ -1,3 +1,4 @@
+use crate::router::Route;
 use crate::{
     stores::auth::{self, AuthStore},
     utilities::{
@@ -9,6 +10,7 @@ use rand::distributions::{Alphanumeric, DistString};
 use wasm_bindgen::JsCast;
 use web_sys::HtmlDocument;
 use yew::prelude::*;
+use yew_router::prelude::*;
 use yewdux::prelude::{BasicStore, Dispatcher};
 use yewdux_functional::use_store;
 
@@ -20,22 +22,10 @@ pub fn top_navbar() -> Html {
         let auth_store = use_store::<BasicStore<AuthStore>>();
         Callback::from(move |event: MouseEvent| {
             event.prevent_default();
-            auth_store
-                .dispatch()
-                .reduce(|store| store.state = create_random_string(43));
-            let login_uri = auth_store
-                .state()
-                .clone()
-                .map(|store| store.create_login_uri())
-                .unwrap_or_default();
-            let state = auth_store
-                .state()
-                .map(|store| store.state.clone())
-                .unwrap_or_default();
-            set_cookie("auth0_state", &state, "/", 60);
-            if let Err(error) = gloo::utils::window().location().set_href(&login_uri) {
-                log_error(&format!("Error navigating to Auth0 signup: {:?}", error));
-            }
+            let state = create_random_string(43);
+            // if let Err(error) = gloo::utils::window().location().set_href(&login_uri) {
+            //     log_error(&format!("Error navigating to Auth0 signup: {:?}", error));
+            // }
         })
     };
 
@@ -47,6 +37,7 @@ pub fn top_navbar() -> Html {
                     <span class="navbar-text" data-test="nav-title">{"Brooks Builds"}</span>
                 </div>
                 <div>
+                    <Link<Route> to={Route::NotFound}>{"404"}</Link<Route>>
                     <a href="#" data-test="auth-sign-up" onclick={signup_onclick}>{"Sign Up"}</a>
                 </div>
             </div>
