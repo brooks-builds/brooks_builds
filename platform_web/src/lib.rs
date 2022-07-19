@@ -12,7 +12,7 @@ use yew_router::prelude::*;
 use yewdux::prelude::{BasicStore, Dispatcher};
 use yewdux_functional::use_store;
 
-use crate::stores::auth::{handle_redirect_callback, AuthStore};
+use crate::stores::auth::AuthStore;
 
 #[styled_component(App)]
 pub fn app() -> Html {
