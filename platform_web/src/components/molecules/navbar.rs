@@ -1,4 +1,5 @@
 use crate::router::Route;
+use crate::stores::auth::create_login_uri;
 use crate::{
     stores::auth::{self, AuthStore},
     utilities::{
@@ -23,9 +24,12 @@ pub fn top_navbar() -> Html {
         Callback::from(move |event: MouseEvent| {
             event.prevent_default();
             let state = create_random_string(43);
-            // if let Err(error) = gloo::utils::window().location().set_href(&login_uri) {
-            //     log_error(&format!("Error navigating to Auth0 signup: {:?}", error));
-            // }
+            let login_uri = create_login_uri(&state);
+            set_cookie("auth0_state", &state, "/auth/callback", 60);
+            gloo::console::log!("login uri:", &login_uri);
+            if let Err(error) = gloo::utils::window().location().set_href(&login_uri) {
+                log_error(&format!("Error navigating to Auth0 signup: {:?}", error));
+            }
         })
     };
 

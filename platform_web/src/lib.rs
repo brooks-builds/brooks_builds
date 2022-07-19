@@ -17,26 +17,19 @@ use crate::stores::auth::{handle_redirect_callback, AuthStore};
 #[styled_component(App)]
 pub fn app() -> Html {
     let style = use_style(create_css());
-    let store = use_store::<BasicStore<AuthStore>>();
-    let store_loading = store.state().map(|store| store.loading).unwrap_or_default();
-
-    {
-        let dispatch = store.dispatch().clone();
-        use_effect_once(move || {
-            dispatch.reduce(|store| handle_redirect_callback(store));
-
-            || {}
-        });
-    }
+    let auth_error = use_store::<BasicStore<AuthStore>>()
+        .state()
+        .map(|store| store.error.clone().unwrap_or_default())
+        .unwrap_or_default();
 
     html! {
         <BrowserRouter>
             <div class={style}>
                 <TopNavbar />
+                <div>{auth_error}</div>
                 <Switch<Route> render={Switch::render(switch)} />
             </div>
             <Background />
-            <pre>{store_loading}</pre>
         </BrowserRouter>
     }
 }

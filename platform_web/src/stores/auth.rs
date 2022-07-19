@@ -1,9 +1,9 @@
-use std::ops::Deref;
+use std::{env, ops::Deref};
 
 use eyre::{bail, Result};
 use load_dotenv::load_dotenv;
 use url::Url;
-use yewdux::prelude::{BasicStore, Dispatch, DispatchProps, Dispatcher};
+use yewdux::prelude::{BasicStore, DispatchProps, Dispatcher};
 
 use crate::utilities::{cookie::get_cookie, create_uri, log::log_error, UriQueryParam};
 
@@ -17,15 +17,38 @@ pub struct AuthStore {
     pub error: Option<String>,
 }
 
+pub fn create_login_uri(state: &str) -> String {
+    format!("https://{}/authorize?response_type=token&client_id={}&connection={}&redirect_uri={}&scope=openid%20profile%20email&state={}", 
+        env!("AUTH0_DOMAIN"),
+        env!("AUTH0_CLIENT_ID"),
+        env!("AUTH0_CONNECTION"),
+        env!("AUTH0_REDIRECT_URI"),
+        state
+    )
+}
+
 pub fn handle_redirect_callback(store: &mut AuthStore) {
     store.loading = true;
     match Auth0UriResponse::create() {
         Ok(auth0_uri_response) => {
-            gloo::console::log!(auth0_uri_response.state);
+            if compare_state_with_cookie(&auth0_uri_response.state.unwrap_or_default()) {
+                gloo::console::log!("state matches!");
+            } else {
+                store.error = Some("Cannot log you in, state doesn't match".to_owned());
+            }
         }
         Err(error) => {
             store.error = Some(format!("{:?}", error));
         }
+    }
+}
+
+fn compare_state_with_cookie(auth0_state: &str) -> bool {
+    if let Some(state_cookie) = get_cookie("auth0_state") {
+        gloo::console::log!(&state_cookie, auth0_state);
+        auth0_state == state_cookie
+    } else {
+        false
     }
 }
 
