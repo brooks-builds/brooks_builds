@@ -21,6 +21,7 @@ load_dotenv!();
 #[function_component(AuthCallback)]
 pub fn auth_callback() -> Html {
     let auth_store = use_store::<BasicStore<AuthStore>>();
+    let history = use_history().unwrap();
 
     use_effect_once(move || {
         match get_auth_data_from_url() {
@@ -30,6 +31,9 @@ pub fn auth_callback() -> Html {
                     auth_store.dispatch().reduce(|store| {
                         store.error = Some("Invalid State, please try logging in again".to_owned());
                     });
+                } else {
+                    let token = auth_uri_response.token.unwrap_or_default();
+                    set_cookie("auth0_token", &token, "/", 3000);
                 }
             }
             Err(error) => {
@@ -39,7 +43,7 @@ pub fn auth_callback() -> Html {
             }
         }
 
-        // let history = use_history().unwrap().push(Route::Home);
+        history.push(Route::Home);
         || {}
     });
 

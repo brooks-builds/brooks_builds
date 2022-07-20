@@ -12,7 +12,7 @@ use yew_router::prelude::*;
 use yewdux::prelude::{BasicStore, Dispatcher};
 use yewdux_functional::use_store;
 
-use crate::stores::auth::AuthStore;
+use crate::{stores::auth::AuthStore, utilities::cookie::get_cookie};
 
 #[styled_component(App)]
 pub fn app() -> Html {
@@ -21,6 +21,12 @@ pub fn app() -> Html {
         .state()
         .map(|store| store.error.clone().unwrap_or_default())
         .unwrap_or_default();
+
+    use_effect_once(|| {
+        if let Some(token) = get_cookie("auth0_token") {}
+
+        || {}
+    });
 
     html! {
         <BrowserRouter>

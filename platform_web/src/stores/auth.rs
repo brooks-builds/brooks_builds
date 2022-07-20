@@ -20,6 +20,7 @@ pub struct AuthStore {
     pub is_authenticated: bool,
     pub user: Option<User>,
     pub error: Option<String>,
+    pub token: Option<String>,
 }
 
 pub fn create_login_uri(state: &str) -> String {
@@ -44,6 +45,8 @@ pub fn compare_state_with_cookie(auth0_state: &str) -> bool {
         false
     }
 }
+
+pub fn get_user_profile(token: &str) -> Result<User> {}
 
 #[derive(Default, Clone, Serialize, Deserialize)]
 pub struct User {}
