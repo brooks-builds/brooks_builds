@@ -46,10 +46,31 @@ pub fn compare_state_with_cookie(auth0_state: &str) -> bool {
     }
 }
 
-pub fn get_user_profile(token: &str) -> Result<User> {}
+pub fn create_logout_url() -> String {
+    format!(
+        "https://{}/v2/logout?client_id={}&returnTo={}",
+        env!("AUTH0_DOMAIN"),
+        env!("AUTH0_CLIENT_ID"),
+        env!("AUTH0_LOGOUT_URL")
+    )
+}
+
+pub async fn get_user_profile(token: &str) -> Result<User> {
+    let url = format!("https://{}/userinfo", env!("AUTH0_DOMAIN"));
+    let auth_header = format!("Bearer {token}");
+    Ok(gloo::net::http::Request::get(&url)
+        .header("Authorization", &auth_header)
+        .send()
+        .await?
+        .json::<User>()
+        .await?)
+}
 
 #[derive(Default, Clone, Serialize, Deserialize)]
-pub struct User {}
+pub struct User {
+    pub nickname: String,
+    pub sub: String,
+}
 
 impl User {
     pub async fn get_user(token: &str) -> Result<Self> {

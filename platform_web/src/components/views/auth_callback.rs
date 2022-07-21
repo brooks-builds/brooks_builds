@@ -9,7 +9,9 @@ use yewdux_functional::use_store;
 
 use crate::{
     router::Route,
-    stores::auth::{self, compare_state_with_cookie, get_auth_data_from_url, AuthStore},
+    stores::auth::{
+        self, compare_state_with_cookie, get_auth_data_from_url, get_user_profile, AuthStore,
+    },
     utilities::{
         cookie::{get_cookie, set_cookie},
         log::log_error,
@@ -34,6 +36,25 @@ pub fn auth_callback() -> Html {
                 } else {
                     let token = auth_uri_response.token.unwrap_or_default();
                     set_cookie("auth0_token", &token, "/", 3000);
+                    {
+                        let token = token.clone();
+                        wasm_bindgen_futures::spawn_local(async move {
+                            match get_user_profile(&token).await {
+                                Ok(user) => {
+                                    auth_store.dispatch().reduce(|store| {
+                                        store.user = Some(user);
+                                        store.is_authenticated = true
+                                    });
+                                }
+                                Err(error) => {
+                                    let error_message = format!("{:?}", error);
+                                    auth_store
+                                        .dispatch()
+                                        .reduce(|store| store.error = Some(error_message));
+                                }
+                            };
+                        });
+                    }
                 }
             }
             Err(error) => {
@@ -62,25 +83,25 @@ fn parse_url_params(params: &str) -> HashMap<String, String> {
     result
 }
 
-async fn get_user_profile(auth_params: HashMap<String, String>) -> () {
-    let access_token = if let Some(token) = auth_params.get("access_token") {
-        token.to_owned()
-    } else {
-        log_error("cannot get user profile because the token doesn't exist");
-        panic!();
-    };
+// async fn get_user_profile(auth_params: HashMap<String, String>) -> () {
+//     let access_token = if let Some(token) = auth_params.get("access_token") {
+//         token.to_owned()
+//     } else {
+//         log_error("cannot get user profile because the token doesn't exist");
+//         panic!();
+//     };
 
-    let auth0_domain = env!("AUTH0_DOMAIN");
-    let url = format!("{auth0_domain}/userinfo");
-    let authorization_header = format!("Bearer {access_token}");
-    let result = gloo::net::http::Request::get(&url)
-        .header("Authorization", &authorization_header)
-        .header("Content-Type", "application/json")
-        .send()
-        .await
-        .unwrap()
-        .text()
-        .await
-        .unwrap();
-    gloo::console::log!(result);
-}
+//     let auth0_domain = env!("AUTH0_DOMAIN");
+//     let url = format!("{auth0_domain}/userinfo");
+//     let authorization_header = format!("Bearer {access_token}");
+//     let result = gloo::net::http::Request::get(&url)
+//         .header("Authorization", &authorization_header)
+//         .header("Content-Type", "application/json")
+//         .send()
+//         .await
+//         .unwrap()
+//         .text()
+//         .await
+//         .unwrap();
+//     gloo::console::log!(result);
+// }
